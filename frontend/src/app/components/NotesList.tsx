@@ -1,77 +1,6 @@
-import { Search, Trash2 } from 'lucide-react';
+import { Search } from 'lucide-react';
 
-const notes = [
-  {
-    title: 'New Note',
-    date: 'Yesterday',
-    preview: '1 table',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: '3.',
-    date: 'Saturday',
-    preview: '"We redesigned the Ta...',
-    folder: 'Notes',
-    active: true,
-  },
-  {
-    title: 'New Note',
-    date: 'Friday',
-    preview: '',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: 'AI ideas',
-    date: 'Friday',
-    preview: 'Christmas tree ornaments ...',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: '59b',
-    date: 'Tuesday',
-    preview: '00015335959b',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: 'Terminal shortcuts:',
-    date: 'Monday',
-    preview: 'cd ~/Library/Mobile Doc...',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: 'Lila and Plant Reminders',
-    date: '1/24/26',
-    preview: '🌱 Plant Watering Days',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: 'Mental health idea app.',
-    date: '1/22/26',
-    preview: 'Mental health app for the...',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: 'Add preview for pdf,',
-    date: '1/21/26',
-    preview: 'Moving columns on Mac a...',
-    folder: 'Notes',
-    active: false,
-  },
-  {
-    title: 'Cash App 3200$',
-    date: '12/23/25',
-    preview: 'Paypal 11 800',
-    folder: 'Notes',
-    active: false,
-  },
-];
+const notes: { title: string; date: string; preview: string; folder: string; active: boolean }[] = [];
 
 export function NotesList() {
   return (
@@ -86,9 +15,6 @@ export function NotesList() {
             className="flex-1 bg-transparent text-sm text-white placeholder:text-[#8e8e8e] outline-none"
           />
         </div>
-        <button className="p-1.5 hover:bg-[#3d3d3d] rounded">
-          <Trash2 className="w-4 h-4 text-[#f5b800]" />
-        </button>
       </div>
 
       {/* Notes List */}
