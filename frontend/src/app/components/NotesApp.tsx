@@ -13,7 +13,7 @@ export function NotesApp() {
   }, [setNotes]);
 
   return (
-    <div className="flex h-screen bg-[#1e1e1e] text-white overflow-hidden">
+    <div className="flex h-screen bg-[#1e1e1e] text-white overflow-hidden" style={{ pointerEvents: 'auto' }}>
       <Sidebar />
       <NotesList />
       <NoteViewer />

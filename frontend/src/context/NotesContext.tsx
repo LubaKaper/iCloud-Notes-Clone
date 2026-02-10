@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 
 export interface Note {
   id: string;
@@ -11,7 +11,7 @@ export interface Note {
 
 interface NotesContextType {
   notes: Note[];
-  setNotes: (notes: Note[]) => void;
+  setNotes: React.Dispatch<React.SetStateAction<Note[]>>;
   selectedNote: Note | null;
   setSelectedNote: (note: Note | null) => void;
   searchQuery: string;
