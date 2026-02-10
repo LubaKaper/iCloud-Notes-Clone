@@ -6,7 +6,7 @@ dotenv.config();
 const pool = new Pool({
   connectionString:
     process.env.DATABASE_URL ||
-    'postgres://postgres:password@localhost:5432/icloud_notes',
+    'postgres://luba@localhost:5432/icloud_notes',
 });
 
 export async function initDb(): Promise<void> {
