@@ -2,24 +2,10 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ensure app is visible and interactive */
-html, body {
-  margin: 0;
-  min-height: 100vh;
-  background-color: #1e1e1e;
+@keyframes slide-in {
+  from { transform: translateX(100%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
 }
-#root {
-  min-height: 100vh;
-  pointer-events: auto !important;
-}
-
-/* Ensure buttons are clickable unless explicitly disabled */
-button:not(:disabled) {
-  cursor: pointer;
-  pointer-events: auto !important;
-}
-
-/* Ensure clickable divs (note rows) receive clicks */
-[role="button"], .cursor-pointer {
-  pointer-events: auto !important;
+.animate-slide-in {
+  animation: slide-in 0.2s ease-out;
 }
