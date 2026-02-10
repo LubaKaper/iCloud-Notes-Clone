@@ -32,8 +32,12 @@ iCloud Notes clone with React frontend + Express backend + PostgreSQL.
 ### Backend API
 - Base path: `/api/notes`
 - Endpoints: POST `/`, GET `/`, GET `/:id`, PUT `/:id`, DELETE `/:id`
+- Full endpoint docs: `backend/API.md`
 - PUT uses revision field for optimistic concurrency (incoming >= stored, else 409)
-- Title auto-derived from first line of note body
+- Revision increments by 1 on each successful update
+- Title auto-derived from first line of note body (max 255 chars, fallback "New Note")
+- UUID validation on all `:id` routes (returns 400 for invalid format)
+- Error responses: 400 (bad input), 404 (not found), 409 (revision conflict), 500 (server error)
 - `@types/express@5` requires `Request<{ id: string }>` for typed route params
 
 ### Frontend

@@ -9,6 +9,16 @@ import {
 
 const router = Router();
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function validateId(req: Request<{ id: string }>, res: Response): boolean {
+  if (!UUID_RE.test(req.params.id)) {
+    res.status(400).json({ error: 'Invalid note id format' });
+    return false;
+  }
+  return true;
+}
+
 // POST /api/notes - Create a new note
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -37,6 +47,7 @@ router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
 // GET /api/notes/:id - Get a single note
 router.get('/:id', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
+    if (!validateId(req, res)) return;
     const note = await getNoteById(req.params.id);
     if (!note) {
       res.status(404).json({ error: 'Note not found' });
@@ -51,6 +62,7 @@ router.get('/:id', async (req: Request<{ id: string }>, res: Response, next: Nex
 // PUT /api/notes/:id - Update a note (with revision check)
 router.put('/:id', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
+    if (!validateId(req, res)) return;
     const { body, revision } = req.body;
     if (typeof body !== 'string') {
       res.status(400).json({ error: 'body is required and must be a string' });
@@ -89,6 +101,7 @@ router.delete(
   '/:id',
   async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
+      if (!validateId(req, res)) return;
       const deleted = await deleteNote(req.params.id);
       if (!deleted) {
         res.status(404).json({ error: 'Note not found' });
