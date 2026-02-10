@@ -75,14 +75,18 @@ router.put('/:id', async (req: Request<{ id: string }>, res: Response, next: Nex
       return;
     }
 
+    console.log(`PUT /api/notes/${req.params.id} — incoming revision: ${revision}`);
+
     const result = await updateNote(req.params.id, body, revision);
 
     if (!result.note && !result.conflict) {
+      console.log(`PUT /api/notes/${req.params.id} — 404 not found`);
       res.status(404).json({ error: 'Note not found' });
       return;
     }
 
     if (result.conflict) {
+      console.log(`PUT /api/notes/${req.params.id} — 409 conflict (stored revision: ${result.note!.revision})`);
       res.status(409).json({
         error: 'Revision conflict: your data is outdated',
         currentNote: result.note,
@@ -90,6 +94,7 @@ router.put('/:id', async (req: Request<{ id: string }>, res: Response, next: Nex
       return;
     }
 
+    console.log(`PUT /api/notes/${req.params.id} — 200 updated (new revision: ${result.note!.revision})`);
     res.json(result.note);
   } catch (err) {
     next(err);

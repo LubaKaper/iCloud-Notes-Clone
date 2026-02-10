@@ -54,29 +54,29 @@ export async function updateNote(
   body: string,
   revision: number
 ): Promise<{ note: Note | null; conflict: boolean }> {
-  const existing = await getNoteById(id);
+  const title = deriveTitle(body);
+  const now = new Date();
 
+  // Atomic update: only succeeds if revision matches exactly
+  const result = await pool.query(
+    `UPDATE notes
+     SET title = $1, body = $2, revision = revision + 1, "updatedAt" = $3
+     WHERE id = $4 AND revision = $5
+     RETURNING id, title, body, revision, "createdAt", "updatedAt"`,
+    [title, body, now, id, revision]
+  );
+
+  if (result.rows[0]) {
+    return { note: result.rows[0], conflict: false };
+  }
+
+  // Row wasn't updated — either not found or revision mismatch
+  const existing = await getNoteById(id);
   if (!existing) {
     return { note: null, conflict: false };
   }
 
-  if (revision < existing.revision) {
-    return { note: existing, conflict: true };
-  }
-
-  const title = deriveTitle(body);
-  const now = new Date();
-  const newRevision = existing.revision + 1;
-
-  const result = await pool.query(
-    `UPDATE notes
-     SET title = $1, body = $2, revision = $3, "updatedAt" = $4
-     WHERE id = $5
-     RETURNING id, title, body, revision, "createdAt", "updatedAt"`,
-    [title, body, newRevision, now, id]
-  );
-
-  return { note: result.rows[0], conflict: false };
+  return { note: existing, conflict: true };
 }
 
 export async function deleteNote(id: string): Promise<boolean> {
