@@ -1,6 +1,6 @@
 # iCloud Notes Clone
 
-A full-stack iCloud Notes clone built with React, Express, and PostgreSQL. Features a dark-themed three-column layout, CRUD operations, autosave with debounce, and offline persistence via IndexedDB.
+A full-stack iCloud Notes clone built with React, Express, and PostgreSQL. Features a dark-themed three-column layout, folder organization, CRUD operations, autosave with debounce, and offline persistence via IndexedDB.
 
 ## Tech Stack
 
@@ -10,7 +10,7 @@ A full-stack iCloud Notes clone built with React, Express, and PostgreSQL. Featu
 | Icons | lucide-react |
 | Backend | Express 4, TypeScript |
 | Database | PostgreSQL 17 |
-| Offline Storage | IndexedDB (Day 3) |
+| Offline Storage | IndexedDB |
 
 ## Project Structure
 
@@ -19,19 +19,22 @@ icloud-notes-clone/
 ├── frontend/               # React + Vite + Tailwind
 │   ├── src/
 │   │   ├── app/components/ # UI components (NotesApp, Sidebar, NotesList, NoteViewer)
-│   │   ├── context/        # React Context for state management
-│   │   ├── utils/          # API client (axios)
+│   │   ├── context/        # NotesContext (notes, folders, selectedNote, selectedFolder)
+│   │   ├── utils/          # api.ts (axios), offlineSync.ts, indexedDb.ts, debounce.ts
 │   │   └── styles/         # Tailwind CSS entry
-│   ├── index.html
 │   ├── vite.config.ts      # Proxies /api -> localhost:3000
 │   └── package.json
 ├── backend/                # Express + PostgreSQL
 │   ├── src/
 │   │   ├── server.ts       # Express app, port 3000
-│   │   ├── db.ts           # PostgreSQL pool + table init
-│   │   ├── routes/notes.ts # 5 REST endpoints
-│   │   ├── models/Note.ts  # Note interface + CRUD helpers
-│   │   └── middleware/      # Error handler
+│   │   ├── db.ts           # PostgreSQL pool + table/column init
+│   │   ├── routes/
+│   │   │   ├── notes.ts    # 5 REST endpoints for notes
+│   │   │   └── folders.ts  # 4 REST endpoints for folders
+│   │   ├── models/
+│   │   │   ├── Note.ts     # Note interface + CRUD helpers
+│   │   │   └── Folder.ts   # Folder interface + CRUD helpers
+│   │   └── middleware/     # Error handler
 │   └── package.json
 └── docs/                   # PRD, design spec, setup guides
 ```
@@ -40,7 +43,7 @@ icloud-notes-clone/
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL running locally
+- PostgreSQL 17 running locally (`brew services start postgresql@17`)
 
 ### 1. Backend
 ```bash
@@ -61,85 +64,69 @@ The Vite dev server proxies all `/api` requests to the backend, so no CORS issue
 
 ## API Endpoints
 
+### Notes
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/notes` | Create a note `{ body: string }` |
-| GET | `/api/notes` | List all notes (sorted by updatedAt DESC) |
+| POST | `/api/notes` | Create a note `{ body: string, folderId?: string }` |
+| GET | `/api/notes` | List notes. Optional `?folderId=` to filter by folder |
 | GET | `/api/notes/:id` | Get a single note |
 | PUT | `/api/notes/:id` | Update a note `{ body: string, revision: number }` |
 | DELETE | `/api/notes/:id` | Delete a note |
 
-**Revision handling:** PUT only succeeds if `incoming revision >= stored revision`, then increments. Returns 409 on conflict. Title is auto-derived from the first line of the body.
+### Folders
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/folders` | Create a folder `{ name: string }` |
+| GET | `/api/folders` | List all folders (alphabetical) |
+| PUT | `/api/folders/:id` | Rename a folder `{ name: string }` |
+| DELETE | `/api/folders/:id` | Delete a folder (notes become uncategorized) |
+
+**Revision handling:** PUT only succeeds if `incoming revision` matches stored revision exactly, then increments by 1. Returns 409 on conflict. Title is auto-derived from the first line of the body.
 
 ## Database Schema
 
 ```sql
+CREATE TABLE folders (
+  id UUID PRIMARY KEY,
+  name TEXT NOT NULL,
+  "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE notes (
   id UUID PRIMARY KEY,
   title TEXT NOT NULL DEFAULT '',
   body TEXT NOT NULL DEFAULT '',
   revision INTEGER NOT NULL DEFAULT 0,
+  "folderId" UUID REFERENCES folders(id) ON DELETE SET NULL,
   "createdAt" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   "updatedAt" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 ```
 
-The table is auto-created when the backend starts.
+Both tables are auto-created (or migrated) when the backend starts.
 
 ---
 
-## 5-Day Sprint Checklist
+## Features
 
-### Day 1: Architecture & Setup
-- [x] Express server running on port 3000
-- [x] PostgreSQL database connected, table auto-created
-- [x] All 5 CRUD endpoints built and tested
-- [x] CORS configured for localhost:5173
-- [x] Error handling middleware
-- [x] Vite + React frontend running on port 5173
-- [x] Tailwind CSS dark theme rendering
-- [x] Figma components cleaned (placeholder data removed)
-- [x] Vite proxy forwarding `/api` to backend
-- [x] API client scaffolded (`frontend/src/utils/api.ts`)
-- [x] NotesContext scaffolded (`frontend/src/context/NotesContext.tsx`)
-- [x] Environment config files (`.env.example` for both)
+### Notes
+- Create, view, edit, delete notes
+- Title auto-derived from the first line of the body (large heading in editor)
+- Autosave: 800ms debounce after typing stops, plus immediate save on blur
+- Notes list shows bold title, date, body preview, and folder name
+- Search filters notes by title or body
 
-### Day 2: State Management & Frontend Wiring
-- [ ] NotesProvider wraps the app
-- [ ] Components consume NotesContext (useNotes hook)
-- [ ] Fetch notes from API on load, display in NotesList
-- [ ] Click note in list -> show in NoteViewer
-- [ ] Create new note -> calls POST, appears in list
-- [ ] Edit note in NoteViewer -> calls PUT
-- [ ] Delete note via trash icon -> calls DELETE
-- [ ] Search bar filters notes by title/body
+### Folders
+- Create folders via the "New Folder" button (prompted for a name)
+- Select a folder to view only its notes
+- "All iCloud" always shows all notes regardless of folder
+- Delete a folder — its notes stay, they just become uncategorized
+- Folder icon shown on each note in the list
 
-### Day 3: Autosave & Persistence
-- [ ] Debounce utility (800ms inactivity trigger)
-- [ ] Autosave on keystroke (debounced)
-- [ ] Autosave on blur (immediate)
-- [ ] Revision field sent with every update
-- [ ] "Saving..." / "Saved" status indicator in UI
-- [ ] IndexedDB service for offline storage
-- [ ] Notes persist after page refresh via IndexedDB
-- [ ] Sync IndexedDB with server on reconnect
-
-### Day 4: Polish & Features
-- [ ] Search filtering works in NotesList
-- [ ] Delete confirmation dialog before removing notes
-- [ ] Error boundary component
-- [ ] Toast notifications for save errors
-- [ ] Retry logic for failed API calls
-- [ ] UI matches iCloud design (colors, spacing, typography)
-- [ ] No console errors
-
-### Day 5: Testing & Deployment
-- [ ] End-to-end testing: create, edit, delete, search, autosave
-- [ ] Offline behavior tested (IndexedDB fallback)
-- [ ] Frontend deployed to Vercel
-- [ ] Backend + PostgreSQL deployed to Railway/Render
-- [ ] CORS updated for production URL
-- [ ] Production URLs verified and working
+### Persistence
+- IndexedDB caches notes for offline access
+- Pending creates/updates/deletes sync to server when back online
+- Selected folder and note restored from `localStorage` on page reload
 
 ---
 
@@ -147,6 +134,7 @@ The table is auto-created when the backend starts.
 
 - Users can create, view, edit, and delete notes
 - Autosave triggers after 800ms inactivity and on blur
+- Notes are organized into folders; "All iCloud" shows everything
 - Zero data loss (IndexedDB fallback + server sync)
 - Three-column dark-themed layout matching iCloud design
-- Deployed and accessible in production
+- Selected folder and note persist across page reloads
