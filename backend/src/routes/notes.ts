@@ -22,12 +22,12 @@ function validateId(req: Request<{ id: string }>, res: Response): boolean {
 // POST /api/notes - Create a new note
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { body } = req.body;
+    const { body, folder } = req.body;
     if (typeof body !== 'string') {
       res.status(400).json({ error: 'body is required and must be a string' });
       return;
     }
-    const note = await createNote(body);
+    const note = await createNote(body, typeof folder === 'string' ? folder : 'All iCloud');
     res.status(201).json(note);
   } catch (err) {
     next(err);

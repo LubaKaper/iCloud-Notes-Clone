@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure app and buttons are clickable */
+html, body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #1e1e1e;
+}
+#root {
+  min-height: 100vh;
+  pointer-events: auto !important;
+}
+button:not(:disabled) {
+  cursor: pointer;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+}
+[role="button"], .cursor-pointer {
+  pointer-events: auto !important;
+}
+a[role="button"] {
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  color: inherit;
+}
+
 @keyframes slide-in {
   from { transform: translateX(100%); opacity: 0; }
   to   { transform: translateX(0);    opacity: 1; }

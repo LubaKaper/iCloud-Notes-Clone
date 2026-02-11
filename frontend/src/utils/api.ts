@@ -12,7 +12,7 @@ const api = axios.create({
 
 /** Alias for spec compatibility - returns raw axios response (use res.data) */
 export const notesAPI = {
-  createNote: (body: string) => api.post('/notes', { body }),
+  createNote: (body: string, folder?: string) => api.post('/notes', { body, folder: folder ?? 'All iCloud' }),
   getNotes: () => api.get('/notes'),
   getNote: (id: string) => api.get(`/notes/${id}`),
   updateNote: (id: string, body: string, revision: number) =>
@@ -25,8 +25,24 @@ export interface Note {
   title: string;
   body: string;
   revision: number;
+  folder?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+/** 409 conflict response from PUT /api/notes/:id */
+export interface ConflictResponse {
+  error: string;
+  currentNote: Note;
+}
+
+export function isConflictResponse(data: unknown): data is ConflictResponse {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'currentNote' in data &&
+    typeof (data as ConflictResponse).currentNote === 'object'
+  );
 }
 
 export async function getNotes(): Promise<Note[]> {
@@ -34,13 +50,16 @@ export async function getNotes(): Promise<Note[]> {
   return data;
 }
 
+/** Alias for components that use fetchNotes */
+export const fetchNotes = getNotes;
+
 export async function getNote(id: string): Promise<Note> {
   const { data } = await api.get<Note>(`/notes/${id}`);
   return data;
 }
 
-export async function createNote(body: string): Promise<Note> {
-  const { data } = await api.post<Note>('/notes', { body });
+export async function createNote(body: string, folder = 'All iCloud'): Promise<Note> {
+  const { data } = await api.post<Note>('/notes', { body, folder });
   return data;
 }
 

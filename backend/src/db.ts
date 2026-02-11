@@ -18,9 +18,13 @@ export async function initDb(): Promise<void> {
         title TEXT NOT NULL DEFAULT '',
         body TEXT NOT NULL DEFAULT '',
         revision INTEGER NOT NULL DEFAULT 0,
+        folder TEXT NOT NULL DEFAULT 'All iCloud',
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       )
+    `);
+    await client.query(`
+      ALTER TABLE notes ADD COLUMN IF NOT EXISTS folder TEXT NOT NULL DEFAULT 'All iCloud'
     `);
   } finally {
     client.release();

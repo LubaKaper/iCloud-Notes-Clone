@@ -6,6 +6,7 @@ export interface Note {
   title: string;
   body: string;
   revision: number;
+  folder: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -15,16 +16,16 @@ function deriveTitle(body: string): string {
   return firstLine.slice(0, 255) || 'New Note';
 }
 
-export async function createNote(body: string): Promise<Note> {
+export async function createNote(body: string, folder = 'All iCloud'): Promise<Note> {
   const id = uuidv4();
   const title = deriveTitle(body);
   const now = new Date();
 
   const result = await pool.query(
-    `INSERT INTO notes (id, title, body, revision, "createdAt", "updatedAt")
-     VALUES ($1, $2, $3, 0, $4, $4)
-     RETURNING id, title, body, revision, "createdAt", "updatedAt"`,
-    [id, title, body, now]
+    `INSERT INTO notes (id, title, body, revision, folder, "createdAt", "updatedAt")
+     VALUES ($1, $2, $3, 0, $4, $5, $5)
+     RETURNING id, title, body, revision, folder, "createdAt", "updatedAt"`,
+    [id, title, body, folder, now]
   );
 
   return result.rows[0];
@@ -32,7 +33,7 @@ export async function createNote(body: string): Promise<Note> {
 
 export async function getAllNotes(): Promise<Note[]> {
   const result = await pool.query(
-    `SELECT id, title, body, revision, "createdAt", "updatedAt"
+    `SELECT id, title, body, revision, folder, "createdAt", "updatedAt"
      FROM notes
      ORDER BY "updatedAt" DESC`
   );
@@ -41,7 +42,7 @@ export async function getAllNotes(): Promise<Note[]> {
 
 export async function getNoteById(id: string): Promise<Note | null> {
   const result = await pool.query(
-    `SELECT id, title, body, revision, "createdAt", "updatedAt"
+    `SELECT id, title, body, revision, folder, "createdAt", "updatedAt"
      FROM notes
      WHERE id = $1`,
     [id]
@@ -62,7 +63,7 @@ export async function updateNote(
     `UPDATE notes
      SET title = $1, body = $2, revision = revision + 1, "updatedAt" = $3
      WHERE id = $4 AND revision = $5
-     RETURNING id, title, body, revision, "createdAt", "updatedAt"`,
+     RETURNING id, title, body, revision, folder, "createdAt", "updatedAt"`,
     [title, body, now, id, revision]
   );
 

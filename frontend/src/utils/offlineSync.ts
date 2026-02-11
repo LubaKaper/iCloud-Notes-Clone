@@ -1,4 +1,4 @@
-import { Note, fetchNotes, createNote, updateNote, deleteNote } from './api';
+import { Note, fetchNotes, createNote, updateNote, deleteNote, isConflictResponse } from './api';
 import {
   cachePutAllNotes,
   cachePutNote,
@@ -50,9 +50,9 @@ export async function syncFetchNotes(): Promise<Note[]> {
   }
 }
 
-export async function syncCreateNote(body: string): Promise<Note> {
+export async function syncCreateNote(body: string, folder = 'All iCloud'): Promise<Note> {
   try {
-    const note = await createNote(body);
+    const note = await createNote(body, folder);
     await cachePutNote(note).catch(() => {});
     return note;
   } catch (err: any) {
@@ -133,13 +133,10 @@ export async function syncPendingChanges(): Promise<SyncResult> {
           await createNote(note.body);
           // Server assigns a new ID — remove the old local-UUID entry
           await cacheDeleteNote(note.id).catch(() => {});
-        } else if (updateErr.response?.status === 409) {
+        } else if (updateErr.response?.status === 409 && isConflictResponse(updateErr.response?.data)) {
           result.conflicts.push(note.id);
-          // Server wins — cache the server version
-          const serverNote = updateErr.response.data.currentNote;
-          if (serverNote) {
-            await cachePutNote(serverNote).catch(() => {});
-          }
+          const { currentNote: serverNote } = updateErr.response.data;
+          await cachePutNote(serverNote).catch(() => {});
           continue;
         } else {
           throw updateErr;
