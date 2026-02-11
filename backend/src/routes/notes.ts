@@ -22,12 +22,12 @@ function validateId(req: Request<{ id: string }>, res: Response): boolean {
 // POST /api/notes - Create a new note
 router.post('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { body } = req.body;
+    const { body, folderId } = req.body;
     if (typeof body !== 'string') {
       res.status(400).json({ error: 'body is required and must be a string' });
       return;
     }
-    const note = await createNote(body);
+    const note = await createNote(body, folderId);
     res.status(201).json(note);
   } catch (err) {
     next(err);
@@ -35,9 +35,10 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/notes - List all notes sorted by updatedAt DESC
-router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const notes = await getAllNotes();
+    const folderId = req.query.folderId as string | undefined;
+    const notes = await getAllNotes(folderId);
     res.json(notes);
   } catch (err) {
     next(err);
