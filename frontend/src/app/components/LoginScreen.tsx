@@ -101,15 +101,14 @@ export function LoginScreen() {
         </p>
 
         {/* Sign In — GIS button rendered inside, styled button on top */}
-        <div className="relative mt-10">
-          {/* Real GIS button — invisible but clickable underneath */}
+        <div className="relative mt-10 w-[240px] h-[48px]">
+          {/* Real GIS button — invisible but clickable, explicit size so iframe renders */}
           <div
             ref={buttonRef}
-            className="opacity-0 absolute inset-0 z-10 overflow-hidden rounded-full"
-            style={{ minWidth: '200px', minHeight: '48px' }}
+            className="opacity-0 absolute inset-0 z-10 rounded-full"
           />
           {/* Visible styled button */}
-          <div className="bg-white text-[#1c1c1c] font-medium text-base px-16 py-3 rounded-full select-none pointer-events-none">
+          <div className="absolute inset-0 bg-white text-[#1c1c1c] font-medium text-base rounded-full flex items-center justify-center select-none pointer-events-none">
             Sign In
           </div>
         </div>
