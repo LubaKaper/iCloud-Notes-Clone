@@ -172,6 +172,20 @@ VITE_GOOGLE_CLIENT_ID=<your-google-client-id>
 # VITE_API_URL=http://192.168.x.x:3000
 ```
 
+### Deploying to Vercel (production login)
+
+1. **Deploy the backend** somewhere (e.g. Railway, Render) and note its URL (e.g. `https://your-app.railway.app`). Set `JWT_SECRET`, `GOOGLE_CLIENT_ID`, and `DATABASE_URL` there.
+
+2. **In Vercel** (frontend project): **Settings → Environment Variables**. Use **one** of these:
+   - **Option A (recommended):** Set `VITE_API_URL` = your backend URL with **no** `/api` (e.g. `https://your-app.railway.app`). Redeploy so the built app uses it.
+   - **Option B:** Set `BACKEND_URL` = same backend URL. The repo includes a serverless proxy (`frontend/api/`) that forwards `/api/*` to this URL so the client can use relative `/api`.
+
+3. **In Vercel** also set `VITE_GOOGLE_CLIENT_ID` = your Google OAuth Web client ID.
+
+4. **In Google Cloud Console** → your OAuth 2.0 Client ID → **Authorized JavaScript origins** add your Vercel URL (e.g. `https://icloud-notesclone.vercel.app`).
+
+5. Redeploy the frontend after changing env vars. Login should then work and not redirect back to the login page.
+
 ### iPhone Testing (Same Wi-Fi)
 
 1. Find your laptop's local IP: `ipconfig getifaddr en0`

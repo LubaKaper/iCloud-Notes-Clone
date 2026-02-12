@@ -20,14 +20,14 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor — handle 401 by clearing auth and reloading
+// Response interceptor — on 401 clear auth and notify app (no reload so login screen shows smoothly)
 api.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
-      window.location.reload();
+      window.dispatchEvent(new CustomEvent('auth:session-expired'));
     }
     return Promise.reject(err);
   }

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface AuthUser {
   id: string;
@@ -31,6 +31,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const initial = loadFromStorage();
   const [token, setToken] = useState<string | null>(initial.token);
   const [user, setUser] = useState<AuthUser | null>(initial.user);
+
+  // When API returns 401, api.ts dispatches this; we clear state so app shows login without full reload
+  useEffect(() => {
+    const handler = () => {
+      setToken(null);
+      setUser(null);
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('selectedNoteId');
+      localStorage.removeItem('selectedFolderId');
+    };
+    window.addEventListener('auth:session-expired', handler);
+    return () => window.removeEventListener('auth:session-expired', handler);
+  }, []);
 
   const login = (newToken: string, newUser: AuthUser) => {
     localStorage.setItem('auth_token', newToken);
