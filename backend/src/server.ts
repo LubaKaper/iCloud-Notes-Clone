@@ -2,7 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { initDb } from './db';
+import authRouter from './routes/auth';
 import notesRouter from './routes/notes';
+import foldersRouter from './routes/folders';
 import { errorHandler } from './middleware/errorHandler';
 
 dotenv.config();
@@ -10,10 +12,12 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: ['http://localhost:5173', 'http://127.0.0.1:5173'] }));
+app.use(cors({ origin: true }));
 app.use(express.json());
 
+app.use('/api/auth', authRouter);
 app.use('/api/notes', notesRouter);
+app.use('/api/folders', foldersRouter);
 
 app.use(errorHandler);
 

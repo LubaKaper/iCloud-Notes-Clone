@@ -32,10 +32,12 @@ function deriveTitle(body: string): string {
 
 // --- Wrapped API functions ---
 
-export async function syncFetchNotes(): Promise<Note[]> {
+export async function syncFetchNotes(folderId?: string): Promise<Note[]> {
   try {
-    const notes = await fetchNotes();
-    await cachePutAllNotes(notes).catch(() => {});
+    const notes = await fetchNotes(folderId);
+    if (!folderId) {
+      await cachePutAllNotes(notes).catch(() => {});
+    }
     return notes;
   } catch (err: any) {
     if (isNetworkError(err)) {
@@ -50,9 +52,9 @@ export async function syncFetchNotes(): Promise<Note[]> {
   }
 }
 
-export async function syncCreateNote(body: string): Promise<Note> {
+export async function syncCreateNote(body: string, folderId?: string | null): Promise<Note> {
   try {
-    const note = await createNote(body);
+    const note = await createNote(body, folderId);
     await cachePutNote(note).catch(() => {});
     return note;
   } catch (err: any) {
@@ -63,6 +65,7 @@ export async function syncCreateNote(body: string): Promise<Note> {
         title: deriveTitle(body),
         body,
         revision: 0,
+        folderId: folderId || null,
         createdAt: now,
         updatedAt: now,
       };
@@ -91,6 +94,7 @@ export async function syncUpdateNote(
         title: deriveTitle(body),
         body,
         revision,
+        folderId: null,
         createdAt: now,
         updatedAt: now,
       };
