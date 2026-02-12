@@ -34,6 +34,29 @@ export async function initDb(): Promise<void> {
     await client.query(`
       ALTER TABLE notes ADD COLUMN IF NOT EXISTS "folderId" UUID REFERENCES folders(id) ON DELETE SET NULL
     `);
+
+    // Users table
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id UUID PRIMARY KEY,
+        google_sub TEXT UNIQUE NOT NULL,
+        email TEXT,
+        name TEXT,
+        picture_url TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    // Add userId to notes and folders
+    await client.query(`
+      ALTER TABLE notes ADD COLUMN IF NOT EXISTS "userId" UUID REFERENCES users(id) ON DELETE CASCADE
+    `);
+    await client.query(`
+      CREATE INDEX IF NOT EXISTS idx_notes_user_updated ON notes("userId", "updatedAt" DESC)
+    `);
+    await client.query(`
+      ALTER TABLE folders ADD COLUMN IF NOT EXISTS "userId" UUID REFERENCES users(id) ON DELETE CASCADE
+    `);
   } finally {
     client.release();
   }

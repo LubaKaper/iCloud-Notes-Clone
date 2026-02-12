@@ -138,3 +138,46 @@ Both tables are auto-created (or migrated) when the backend starts.
 - Zero data loss (IndexedDB fallback + server sync)
 - Three-column dark-themed layout matching iCloud design
 - Selected folder and note persist across page reloads
+- Notes are scoped per user — two Google accounts see separate, isolated notes
+
+---
+
+## Authentication — Google Sign-In Setup
+
+### Google Cloud Setup
+
+1. Go to [https://console.cloud.google.com](https://console.cloud.google.com) and create or select a project
+2. Navigate to **APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID**
+3. Application type: **Web application**
+4. Under **Authorized JavaScript origins**, add:
+   - `http://localhost:5173`
+   - (For iPhone testing on Wi-Fi) `http://<your-laptop-ip>:5173`
+5. Copy the **Client ID** (looks like `123456-xxxx.apps.googleusercontent.com`)
+
+### Environment Variables
+
+**Backend — `backend/.env`:**
+```
+DATABASE_URL=postgres://luba@localhost:5432/icloud_notes
+PORT=3000
+NODE_ENV=development
+JWT_SECRET=<replace-with-a-random-secret-at-least-32-chars>
+GOOGLE_CLIENT_ID=<your-google-client-id>
+```
+
+**Frontend — `frontend/.env.local`** (gitignored):
+```
+VITE_GOOGLE_CLIENT_ID=<your-google-client-id>
+# For iPhone testing on same Wi-Fi, uncomment and set your laptop IP:
+# VITE_API_URL=http://192.168.x.x:3000
+```
+
+### iPhone Testing (Same Wi-Fi)
+
+1. Find your laptop's local IP: `ipconfig getifaddr en0`
+2. Start backend with `npm run dev` in `backend/`
+3. Start frontend with: `npm run dev -- --host` in `frontend/`
+4. Set `VITE_API_URL=http://<laptop-ip>:3000` in `frontend/.env.local`
+5. Add `http://<laptop-ip>:5173` to Authorized JavaScript origins in Google Cloud Console
+6. Open `http://<laptop-ip>:5173` in Safari on your iPhone
+7. Sign in with the same Google account → same notes appear on both devices

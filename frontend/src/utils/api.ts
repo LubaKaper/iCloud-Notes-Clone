@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { AuthUser } from '../context/AuthContext';
 
 // Use proxy (/api) when no explicit URL - works with Vite dev server
 const API_BASE = import.meta.env.VITE_API_URL
@@ -9,6 +10,28 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
   timeout: 10000,
 });
+
+// Request interceptor — attach JWT token
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Response interceptor — handle 401 by clearing auth and reloading
+api.interceptors.response.use(
+  (r) => r,
+  (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('auth_user');
+      window.location.reload();
+    }
+    return Promise.reject(err);
+  }
+);
 
 /** Alias for spec compatibility - returns raw axios response (use res.data) */
 export const notesAPI = {
@@ -90,4 +113,11 @@ export async function renameFolder(id: string, name: string): Promise<Folder> {
 
 export async function deleteFolder(id: string): Promise<void> {
   await api.delete(`/folders/${id}`);
+}
+
+// --- Auth API ---
+
+export async function googleAuth(idToken: string): Promise<{ token: string; user: AuthUser }> {
+  const { data } = await api.post<{ token: string; user: AuthUser }>('/auth/google', { idToken });
+  return data;
 }

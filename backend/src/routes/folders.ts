@@ -5,8 +5,11 @@ import {
   renameFolder,
   deleteFolder,
 } from '../models/Folder';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -26,7 +29,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       res.status(400).json({ error: 'name is required and must be a non-empty string' });
       return;
     }
-    const folder = await createFolder(name.trim());
+    const folder = await createFolder(name.trim(), req.userId);
     res.status(201).json(folder);
   } catch (err) {
     next(err);
@@ -34,9 +37,9 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 });
 
 // GET /api/folders - List all folders
-router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
+router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const folders = await getAllFolders();
+    const folders = await getAllFolders(req.userId);
     res.json(folders);
   } catch (err) {
     next(err);
@@ -52,7 +55,7 @@ router.put('/:id', async (req: Request<{ id: string }>, res: Response, next: Nex
       res.status(400).json({ error: 'name is required and must be a non-empty string' });
       return;
     }
-    const folder = await renameFolder(req.params.id, name.trim());
+    const folder = await renameFolder(req.params.id, req.userId, name.trim());
     if (!folder) {
       res.status(404).json({ error: 'Folder not found' });
       return;
@@ -67,7 +70,7 @@ router.put('/:id', async (req: Request<{ id: string }>, res: Response, next: Nex
 router.delete('/:id', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     if (!validateId(req, res)) return;
-    const deleted = await deleteFolder(req.params.id);
+    const deleted = await deleteFolder(req.params.id, req.userId);
     if (!deleted) {
       res.status(404).json({ error: 'Folder not found' });
       return;

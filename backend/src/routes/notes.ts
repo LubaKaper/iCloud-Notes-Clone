@@ -6,8 +6,11 @@ import {
   updateNote,
   deleteNote,
 } from '../models/Note';
+import { authMiddleware } from '../middleware/auth';
 
 const router = Router();
+
+router.use(authMiddleware);
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -27,7 +30,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
       res.status(400).json({ error: 'body is required and must be a string' });
       return;
     }
-    const note = await createNote(body, folderId);
+    const note = await createNote(body, folderId, req.userId);
     res.status(201).json(note);
   } catch (err) {
     next(err);
@@ -38,7 +41,7 @@ router.post('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const folderId = req.query.folderId as string | undefined;
-    const notes = await getAllNotes(folderId);
+    const notes = await getAllNotes(req.userId, folderId);
     res.json(notes);
   } catch (err) {
     next(err);
@@ -49,7 +52,7 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
 router.get('/:id', async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
   try {
     if (!validateId(req, res)) return;
-    const note = await getNoteById(req.params.id);
+    const note = await getNoteById(req.params.id, req.userId);
     if (!note) {
       res.status(404).json({ error: 'Note not found' });
       return;
@@ -78,7 +81,7 @@ router.put('/:id', async (req: Request<{ id: string }>, res: Response, next: Nex
 
     console.log(`PUT /api/notes/${req.params.id} — incoming revision: ${revision}`);
 
-    const result = await updateNote(req.params.id, body, revision);
+    const result = await updateNote(req.params.id, body, revision, req.userId);
 
     if (!result.note && !result.conflict) {
       console.log(`PUT /api/notes/${req.params.id} — 404 not found`);
@@ -108,7 +111,7 @@ router.delete(
   async (req: Request<{ id: string }>, res: Response, next: NextFunction) => {
     try {
       if (!validateId(req, res)) return;
-      const deleted = await deleteNote(req.params.id);
+      const deleted = await deleteNote(req.params.id, req.userId);
       if (!deleted) {
         res.status(404).json({ error: 'Note not found' });
         return;

@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { HelpCircle, Grid3x3, UserCircle, Share2, Edit3, AlignLeft, ListOrdered, Grid, Trash2 } from 'lucide-react';
+import { HelpCircle, Grid3x3, Share2, Edit3, AlignLeft, ListOrdered, Grid, Trash2, Settings, User, ExternalLink, LogOut } from 'lucide-react';
 import { useNotes } from '../../context/NotesContext';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { syncUpdateNote, syncDeleteNote, syncFetchNotes, syncCreateNote } from '../../utils/offlineSync';
 
 function deriveTitle(body: string): string {
@@ -20,6 +21,21 @@ export function NoteViewer() {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isSavingRef = useRef(false);
   const noteRef = useRef<{ id: string; revision: number } | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
+
+  // Close profile dropdown on click outside
+  useEffect(() => {
+    if (!profileOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [profileOpen]);
 
   // Split body into title (first line) and rest on note selection
   useEffect(() => {
@@ -204,9 +220,76 @@ export function NoteViewer() {
           <button type="button" className="p-1 hover:bg-[#2d2d2d] rounded cursor-pointer">
             <Grid3x3 className="w-5 h-5 text-[#b4b4b4]" />
           </button>
-          <button type="button" className="p-1 hover:bg-[#2d2d2d] rounded cursor-pointer">
-            <UserCircle className="w-5 h-5 text-[#b4b4b4]" />
-          </button>
+
+          {/* Profile avatar + dropdown */}
+          <div className="relative" ref={profileRef}>
+            <button
+              type="button"
+              onClick={() => setProfileOpen((prev) => !prev)}
+              className="p-0.5 hover:bg-[#2d2d2d] rounded-full cursor-pointer focus:outline-none"
+              title="Account"
+            >
+              {user?.pictureUrl ? (
+                <img
+                  src={user.pictureUrl}
+                  alt={user.name ?? 'Profile'}
+                  className="w-7 h-7 rounded-full object-cover"
+                />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-[#3a3a3a] flex items-center justify-center text-white text-xs font-semibold select-none">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
+                </div>
+              )}
+            </button>
+
+            {profileOpen && (
+              <div className="absolute right-0 top-full mt-2 w-[270px] bg-[#2d2d2d] border border-[#444] rounded-xl shadow-2xl z-50 overflow-hidden">
+                {/* User info */}
+                <div className="px-4 py-3">
+                  <p className="text-white text-sm font-semibold leading-snug">{user?.name ?? 'Unknown User'}</p>
+                  <p className="text-[#888] text-xs mt-0.5">{user?.email ?? ''}</p>
+                </div>
+
+                <div className="border-t border-[#444]" />
+
+                {/* iCloud Settings (mock) */}
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                    <Settings className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-white text-sm">iCloud Settings</span>
+                </button>
+
+                {/* Manage Apple Account (mock) */}
+                <button
+                  type="button"
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer"
+                >
+                  <div className="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-white text-sm flex-1 text-left">Manage Apple Account</span>
+                  <ExternalLink className="w-3.5 h-3.5 text-[#777] flex-shrink-0" />
+                </button>
+
+                <div className="border-t border-[#444]" />
+
+                {/* Sign Out (functional) */}
+                <button
+                  type="button"
+                  onClick={() => { setProfileOpen(false); logout(); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#3a3a3a] cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4 text-red-400 flex-shrink-0" />
+                  <span className="text-red-400 text-sm">Sign Out</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           <button type="button" className="p-1 hover:bg-[#2d2d2d] rounded cursor-pointer">
             <Share2 className="w-5 h-5 text-[#b4b4b4]" />
           </button>
