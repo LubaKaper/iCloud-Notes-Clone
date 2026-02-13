@@ -342,7 +342,7 @@ export function NoteViewer({ mobileView, onMobileViewChange }: NoteViewerProps) 
                 onChange={(e) => handleRestBodyChange(e.target.value)}
                 onBlur={handleBlur}
                 placeholder="Start typing..."
-                className="w-full min-h-[200px] md:min-h-[400px] bg-transparent text-white text-sm leading-relaxed resize-none outline-none placeholder:text-[#8e8e8e]"
+                className="w-full min-h-[200px] md:min-h-[400px] bg-transparent text-white text-lg md:text-xl lg:text-2xl leading-relaxed resize-none outline-none placeholder:text-[#8e8e8e]"
                 spellCheck={false}
               />
             </>
