@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { HelpCircle, Grid3x3, Share2, Edit3, AlignLeft, ListOrdered, Grid, Trash2, Settings, User, ExternalLink, LogOut } from 'lucide-react';
+import { HelpCircle, Grid3x3, Share2, Edit3, AlignLeft, ListOrdered, Grid, Trash2, Settings, User, ExternalLink, LogOut, ChevronLeft } from 'lucide-react';
 import { useNotes } from '../../context/NotesContext';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
@@ -10,7 +10,12 @@ function deriveTitle(body: string): string {
   return firstLine.slice(0, 255) || 'New Note';
 }
 
-export function NoteViewer() {
+interface NoteViewerProps {
+  mobileView: 'list' | 'editor';
+  onMobileViewChange: (v: 'list' | 'editor') => void;
+}
+
+export function NoteViewer({ mobileView, onMobileViewChange }: NoteViewerProps) {
   const { notes, setNotes, selectedNote, setSelectedNote, selectedFolder } = useNotes();
   const { addToast } = useToast();
   const [error, setError] = useState<string | null>(null);
@@ -189,10 +194,18 @@ export function NoteViewer() {
   }, [title]);
 
   return (
-    <div className="flex-1 bg-[#1e1e1e] flex flex-col">
+    <div className={`${mobileView === 'list' ? 'hidden md:flex' : 'flex'} flex-col flex-1 bg-[#1e1e1e]`}>
       {/* Toolbar */}
       <div className="relative z-10 px-6 py-3 border-b border-[#2d2d2d] flex items-center justify-between">
         <div className="flex-1 flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onMobileViewChange('list')}
+            className="md:hidden p-1 hover:bg-[#2d2d2d] rounded cursor-pointer"
+            title="Back"
+          >
+            <ChevronLeft className="w-5 h-5 text-[#f5b800]" />
+          </button>
           <button
             type="button"
             onClick={handleDeleteNote}
@@ -308,7 +321,7 @@ export function NoteViewer() {
         <div className="px-6 py-2 text-red-500 text-sm">{error}</div>
       )}
       {/* Note Content */}
-      <div className="flex-1 overflow-y-auto px-24 py-8">
+      <div className="flex-1 overflow-y-auto px-4 py-6 md:px-12 lg:px-24">
         <div className="max-w-3xl">
           {selectedNote ? (
             <>
@@ -329,7 +342,7 @@ export function NoteViewer() {
                 onChange={(e) => handleRestBodyChange(e.target.value)}
                 onBlur={handleBlur}
                 placeholder="Start typing..."
-                className="w-full min-h-[400px] bg-transparent text-white text-sm leading-relaxed resize-none outline-none placeholder:text-[#8e8e8e]"
+                className="w-full min-h-[200px] md:min-h-[400px] bg-transparent text-white text-sm leading-relaxed resize-none outline-none placeholder:text-[#8e8e8e]"
                 spellCheck={false}
               />
             </>

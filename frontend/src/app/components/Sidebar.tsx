@@ -1,9 +1,14 @@
 import { useEffect } from 'react';
-import { PlusCircle, Folder, Trash2 } from 'lucide-react';
+import { PlusCircle, Folder, Trash2, X } from 'lucide-react';
 import { useNotes } from '../../context/NotesContext';
 import { getFolders, createFolder as apiCreateFolder, deleteFolder as apiDeleteFolder } from '../../utils/api';
 
-export function Sidebar() {
+interface SidebarProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+export function Sidebar({ open, onClose }: SidebarProps) {
   const { selectedFolder, setSelectedFolder, folders, setFolders } = useNotes();
 
   useEffect(() => {
@@ -13,6 +18,7 @@ export function Sidebar() {
   const handleSelectFolder = (folderId: string) => {
     setSelectedFolder(folderId);
     localStorage.setItem('selectedFolderId', folderId);
+    onClose();
   };
 
   const handleNewFolder = async () => {
@@ -40,12 +46,17 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-[200px] flex-shrink-0 bg-[#2d2d2d] border-r border-[#3d3d3d] flex flex-col">
+    <div className={`fixed inset-y-0 left-0 z-50 w-[200px] flex-shrink-0 bg-[#2d2d2d] border-r border-[#3d3d3d] flex flex-col transition-transform md:static md:z-auto md:translate-x-0 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
       {/* Header */}
       <div className="px-4 py-3 border-b border-[#3d3d3d]">
-        <div className="flex items-center gap-1">
-          <span className="text-white text-sm">iCloud</span>
-          <span className="text-[#f5b800] text-sm font-semibold">Notes</span>
+        <div className="flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1">
+            <span className="text-white text-sm">iCloud</span>
+            <span className="text-[#f5b800] text-sm font-semibold">Notes</span>
+          </div>
+          <button type="button" onClick={onClose} className="md:hidden p-1 text-[#8e8e8e] hover:text-white">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       </div>
 

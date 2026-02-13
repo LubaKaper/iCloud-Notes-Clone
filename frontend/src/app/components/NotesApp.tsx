@@ -10,6 +10,8 @@ export function NotesApp() {
   const { setNotes, selectedFolder } = useNotes();
   const { addToast } = useToast();
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileView, setMobileView] = useState<'list' | 'editor'>('list');
 
   useEffect(() => {
     const cleanup = startOnlineListener(async (online) => {
@@ -38,15 +40,18 @@ export function NotesApp() {
   }, [setNotes, addToast, selectedFolder]);
 
   return (
-    <div className="flex h-screen bg-[#1e1e1e] text-white overflow-hidden" style={{ pointerEvents: 'auto' }}>
+    <div className="flex flex-col md:flex-row h-screen bg-[#1e1e1e] text-white overflow-hidden" style={{ pointerEvents: 'auto' }}>
       {isOffline && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-[#f5b800] text-black text-xs font-semibold px-3 py-1 rounded-full">
           Offline
         </div>
       )}
-      <Sidebar />
-      <NotesList />
-      <NoteViewer />
+      {sidebarOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/50" onClick={() => setSidebarOpen(false)} />
+      )}
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <NotesList onOpenSidebar={() => setSidebarOpen(true)} mobileView={mobileView} onMobileViewChange={setMobileView} />
+      <NoteViewer mobileView={mobileView} onMobileViewChange={setMobileView} />
     </div>
   );
 }
