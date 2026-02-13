@@ -31,6 +31,7 @@ export function LoginScreen() {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
     if (!clientId) {
       console.error('VITE_GOOGLE_CLIENT_ID is not set');
+      window.alert('Google sign-in is not configured. Missing VITE_GOOGLE_CLIENT_ID.');
       return;
     }
 
@@ -47,8 +48,14 @@ export function LoginScreen() {
           try {
             const { token, user } = await googleAuth(response.credential);
             login(token, user);
-          } catch (err) {
+          } catch (err: any) {
             console.error('Google sign-in failed:', err);
+            const apiError = err?.response?.data?.error;
+            const message =
+              typeof apiError === 'string'
+                ? `Sign in failed: ${apiError}`
+                : 'Sign in failed. Check backend env vars and Google OAuth origins.';
+            window.alert(message);
           }
         },
       });

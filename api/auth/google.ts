@@ -1,11 +1,14 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { OAuth2Client } from 'google-auth-library';
+import { ensureDbInitialized } from '../_lib/db';
 import { upsertUser } from '../_lib/models/User';
 import { signToken } from '../_lib/jwt';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  await ensureDbInitialized();
+
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }

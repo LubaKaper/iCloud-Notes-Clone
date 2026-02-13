@@ -186,6 +186,20 @@ VITE_GOOGLE_CLIENT_ID=<your-google-client-id>
 
 5. Redeploy the frontend after changing env vars. Login should then work and not redirect back to the login page.
 
+#### Vercel env vars by environment
+
+For this app, set these in both **Production** and **Preview** unless you intentionally point Preview at a different backend/database.
+
+| Variable | Production | Preview | Notes |
+|----------|------------|---------|-------|
+| `VITE_GOOGLE_CLIENT_ID` | Required | Required | Must match backend `GOOGLE_CLIENT_ID` |
+| `VITE_API_URL` | Optional | Optional | Use for split FE/BE; **do not include `/api`** |
+| `BACKEND_URL` | Optional | Optional | Only if using `frontend/api/[[...path]].ts` proxy |
+| `GOOGLE_CLIENT_ID` | Required if using root `api/*` | Required if using root `api/*` | Used by Vercel serverless auth verify |
+| `JWT_SECRET` | Required if using root `api/*` | Required if using root `api/*` | Signs/verifies app JWT |
+| `DATABASE_URL` | Required if using root `api/*` | Required if using root `api/*` | Postgres connection string |
+| `NODE_ENV` | `production` | `production` | Needed for prod SSL behavior in serverless DB client |
+
 ### iPhone Testing (Same Wi-Fi)
 
 1. Find your laptop's local IP: `ipconfig getifaddr en0`

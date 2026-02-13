@@ -2,8 +2,9 @@ import axios from 'axios';
 import type { AuthUser } from '../context/AuthContext';
 
 // Use proxy (/api) when no explicit URL - works with Vite dev server
-const API_BASE = import.meta.env.VITE_API_URL
-  ? `${import.meta.env.VITE_API_URL}/api`
+const RAW = (import.meta.env.VITE_API_URL as string | undefined)?.replace(/\/$/, '');
+const API_BASE = RAW
+  ? (RAW.endsWith('/api') ? RAW : `${RAW}/api`)
   : '/api';
 const api = axios.create({
   baseURL: API_BASE,

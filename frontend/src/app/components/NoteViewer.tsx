@@ -236,7 +236,7 @@ export function NoteViewer() {
                   className="w-7 h-7 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-7 h-7 rounded-full bg-[#3a3a3a] flex items-center justify-center text-white text-xs font-semibold select-none">
+                <div className="w-7 h-7 rounded-full bg-[#7e57c2] flex items-center justify-center text-white text-xs font-semibold select-none">
                   {user?.name ? user.name.charAt(0).toUpperCase() : '?'}
                 </div>
               )}
