@@ -5,6 +5,20 @@ import { getNoteById, updateNote, deleteNote } from '../_lib/models/Note';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+function parseJsonBody(body: unknown): Record<string, unknown> {
+  if (typeof body === 'string') {
+    try {
+      return JSON.parse(body) as Record<string, unknown>;
+    } catch {
+      return {};
+    }
+  }
+  if (body && typeof body === 'object') {
+    return body as Record<string, unknown>;
+  }
+  return {};
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   await ensureDbInitialized();
 
@@ -24,7 +38,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (req.method === 'PUT') {
-      const { body, revision } = req.body;
+      const parsed = parseJsonBody(req.body);
+      const body = parsed.body;
+      const revision = parsed.revision;
       if (typeof body !== 'string') {
         return res.status(400).json({ error: 'body is required and must be a string' });
       }
