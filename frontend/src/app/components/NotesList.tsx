@@ -1,8 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Search, Folder } from 'lucide-react';
+import { Search, Folder, Menu } from 'lucide-react';
 import { useNotes } from '../../context/NotesContext';
 import { useToast } from '../../context/ToastContext';
 import { syncFetchNotes } from '../../utils/offlineSync';
+
+interface NotesListProps {
+  onOpenSidebar: () => void;
+  mobileView: 'list' | 'editor';
+  onMobileViewChange: (v: 'list' | 'editor') => void;
+}
 
 function formatDate(iso: string): string {
   const d = new Date(iso);
@@ -18,7 +24,7 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
 }
 
-export function NotesList() {
+export function NotesList({ onOpenSidebar, mobileView, onMobileViewChange }: NotesListProps) {
   const { notes, setNotes, selectedNote, setSelectedNote, searchQuery, setSearchQuery, selectedFolder, folders } = useNotes();
   const { addToast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -52,6 +58,7 @@ export function NotesList() {
     setSelectedNote(note);
     if (note) {
       localStorage.setItem('selectedNoteId', note.id);
+      onMobileViewChange('editor');
     } else {
       localStorage.removeItem('selectedNoteId');
     }
@@ -72,11 +79,14 @@ export function NotesList() {
   };
 
   return (
-    <div className="w-[360px] flex-shrink-0 bg-[#252525] border-r border-[#3d3d3d] flex flex-col">
+    <div className={`${mobileView === 'editor' ? 'hidden md:flex' : 'flex'} flex-col w-full md:w-[360px] flex-shrink-0 bg-[#252525] border-r border-[#3d3d3d]`}>
       {/* Search Bar */}
       <div className="px-3 py-2 border-b border-[#3d3d3d]">
         <div className="flex items-center gap-2 bg-[#1e1e1e] rounded-lg px-3 py-2">
-          <Search className="w-4 h-4 text-[#8e8e8e]" />
+          <button type="button" onClick={onOpenSidebar} className="md:hidden p-0.5 text-[#8e8e8e] hover:text-white flex-shrink-0">
+            <Menu className="w-4 h-4" />
+          </button>
+          <Search className="w-4 h-4 text-[#8e8e8e] flex-shrink-0" />
           <input
             type="text"
             placeholder="Search all notes"
