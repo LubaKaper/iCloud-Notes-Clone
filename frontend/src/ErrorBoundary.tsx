@@ -1,35 +1,27 @@
-import { Component, ReactNode } from 'react';
+import React from 'react';
 
 interface Props {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error: Error | null;
+  message?: string;
 }
 
-export class ErrorBoundary extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
+export class ErrorBoundary extends React.Component<Props, State> {
+  state: State = { hasError: false };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    return { hasError: true, message: error.message };
   }
 
   render() {
-    if (this.state.hasError && this.state.error) {
+    if (this.state.hasError) {
       return (
         <div style={{ padding: 24, fontFamily: 'monospace', color: '#fff', backgroundColor: '#1e1e1e' }}>
           <h1 style={{ color: '#f5b800' }}>App Error</h1>
-          <pre style={{ color: '#e57373', overflow: 'auto' }}>
-            {this.state.error.toString()}
-          </pre>
-          <pre style={{ fontSize: 12, color: '#8e8e8e' }}>
-            {this.state.error.stack}
-          </pre>
+          <pre style={{ color: '#e57373', overflow: 'auto' }}>{this.state.message ?? 'Unknown error'}</pre>
         </div>
       );
     }
